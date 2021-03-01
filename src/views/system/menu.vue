@@ -217,7 +217,6 @@ export default {
         },
         // 编辑菜单
         async editMenu(){
-            console.log(this.editMenuForm.id)
             const { data: res } = await this.$api.menu.editMenu(this.editMenuForm.id, this.editMenuForm)
             // 隐藏添加对话框
             this.editDialogVisible = false

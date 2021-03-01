@@ -29,7 +29,7 @@
                     <el-button type="primary" icon="el-icon-search"  size="mini"  @click="getRoleList" >搜索</el-button>
                 </el-col>
                 <el-col :span="4">
-                    <el-button type="primary" size="mini"  v-permission="['role:add']"   @click="addDialogVisible = true" >+添加角色</el-button>
+                    <el-button type="primary" size="mini"  v-permission="['role:add']"   @click="showaddDialog" >+添加角色</el-button>
                 </el-col>
             </el-row> 
             <el-table size="mini" :data="roleList" border style="margin-top: 10px">
@@ -59,46 +59,22 @@
             </el-pagination>
         </el-card>
          <!-- 添加角色的对话框 -->
-        <el-dialog title="添加角色" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="30%" @close="dialogClosed">
             <el-form
-                :model="addRoleForm"
-                ref="addFormRef"
+                :model="roleForm"
+                ref="formRef"
                 size="mini"
                 label-width="100px">
                 <el-form-item label="角色名称" prop="roleName">
-                <el-input v-model="addRoleForm.roleName"></el-input>
+                <el-input v-model="roleForm.roleName"></el-input>
                 </el-form-item>
                 <el-form-item label="描述" prop="description">
-                <el-input v-model="addRoleForm.description"></el-input>
+                <el-input v-model="roleForm.description"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="addDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="addRole">确 定</el-button>
-            </span>
-        </el-dialog>
-         <!-- 修改角色的对话框 -->
-        <el-dialog
-        title="修改用户信息"
-        :visible.sync="editDialogVisible"
-        width="50%"
-        @close="editDialogClosed">
-        <!-- 内容主体 -->
-            <el-form
-                :model="editRoleForm"
-                ref="editFormRef"
-                size="mini"
-                label-width="70px">
-                <el-form-item label="角色名称" prop="roleName">
-                <el-input v-model="editRoleForm.roleName" disabled></el-input>
-                </el-form-item>
-                <el-form-item label="角色描述" prop="description">
-                <el-input v-model="editRoleForm.description"></el-input>
-                </el-form-item>
-            </el-form>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="editDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="editRole">确 定</el-button>
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submit">确 定</el-button>
             </span>
         </el-dialog>
            <!-- 分配权限 -->
@@ -135,10 +111,8 @@ export default {
             },
             total: 0,
             roleList:[],
-            addDialogVisible: false, // 添加菜单对话框
-            addRoleForm: {},
-            editDialogVisible: false, // 编辑菜单对话框
-            editRoleForm: {},
+            dialogVisible: false, // 添加菜单对话框
+            roleForm: {},
             setMenuDialogVisible: false, // 分配权限对话框
             menuList: [],   // 菜单列表
             defaultProps: { // 树节点
@@ -210,13 +184,7 @@ export default {
             this.roleList = res.data.records
             this.total = res.data.total
         },
-        // 添加角色
-        async addRole(){
-            const {data: res} = await this.$api.role.addRole(this.addRoleForm)
-            this.addDialogVisible = false
-            this.getRoleList()
-        },
-            // 分页
+              // 分页
         handleSizeChange(newSize) {
             this.queryInfo.pageSize = newSize;
             this.getRoleList();  
@@ -225,25 +193,31 @@ export default {
             this.queryInfo.pageNum = current
             this.getRoleList()
         },
-        addDialogClosed(){
+        async submit(){
+            if(this.roleForm.id){
+                const { data: res } = await this.$api.role.editRole( this.roleForm.id, this.roleForm)
+            }else{
+                 const {data: res} = await this.$api.role.addRole(this.roleForm)
+            }
+            this.dialogVisible = false
+            this.getRoleList()
+        },
+        dialogClosed(){
         //对话框关闭之后，重置表单
-        this.$refs.addFormRef.resetFields();
+        //this.$refs.formRef.resetFields();
+        this.roleForm = {}
+        },
+        // 显示编辑角色信息
+        showaddDialog (id) {
+            this.title = '添加角色'
+            this.dialogVisible = true
         },
         // 显示编辑角色信息
         async showEditDialog (id) {
-        const { data: res } = await this.$api.role.getRoleById(id)
-        this.editRoleForm = res.data
-        this.editDialogVisible = true
-        },
-        // 编辑角色
-        async editRole(){
-            const { data: res } = await this.$api.role.editRole( this.editRoleForm.id, this.editRoleForm)
-            // 隐藏添加对话框
-            this.editDialogVisible = false
-            this.getRoleList()
-        },
-        editDialogClosed(){
-            this.$refs.editFormRef.resetFields()
+            const { data: res } = await this.$api.role.getRoleById(id)
+            this.roleForm = res.data
+            this.title = '修改角色'
+            this.dialogVisible = true
         },
         // 删除角色
         async removeRole(id){

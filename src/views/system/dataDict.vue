@@ -29,7 +29,7 @@
                     <el-button type="primary" icon="el-icon-search"  size="mini"  @click="getDataDictList" >搜索</el-button>
                 </el-col>
                 <el-col :span="4">
-                    <el-button type="primary" size="mini"  v-permission="['dict:add']"   @click="addDialogVisible = true" >+添加数据字典</el-button>
+                    <el-button type="primary" size="mini"  v-permission="['dict:add']"   @click="showAddDialog" >+添加数据字典</el-button>
                 </el-col>
             </el-row> 
             <el-table size="mini" :data="roleList" border style="margin-top: 10px">
@@ -58,48 +58,25 @@
             </el-pagination>
         </el-card>
          <!-- 添加数据字典的对话框 -->
-        <el-dialog title="添加数据字典" :visible.sync="addDialogVisible" width="40%" @close="addDialogClosed">
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="40%" @close="dialogClosed">
             <el-form
-                :model="addDictForm"
-                ref="addFormRef"
+                :model="dictForm"
+                ref="formRef"
                 size="mini"
                 label-width="100px">
                 <el-form-item label="字典名称" prop="dictName">
-                <el-input v-model="addDictForm.dictName"></el-input>
+                <el-input v-model="dictForm.dictName"></el-input>
                 </el-form-item>
                 <el-form-item label="字典描述" prop="description">
-                <el-input v-model="addDictForm.description"></el-input>
+                <el-input v-model="dictForm.description"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="addDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="addDataDict">确 定</el-button>
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submit">确 定</el-button>
             </span>
         </el-dialog>
-         <!-- 修改数据字典的对话框 -->
-        <el-dialog
-        title="修改数据字典"
-        :visible.sync="editDialogVisible"
-        width="40%"
-        @close="editDialogClosed">
-        <!-- 内容主体 -->
-            <el-form
-                :model="editDictForm"
-                ref="editFormRef"
-                size="mini"
-                label-width="70px">
-                <el-form-item label="字典名称" prop="dictName">
-                <el-input v-model="editDictForm.dictName"></el-input>
-                </el-form-item>
-                <el-form-item label="字典描述" prop="description">
-                <el-input v-model="editDictForm.description"></el-input>
-                </el-form-item>
-            </el-form>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="editDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="editDataDict">确 定</el-button>
-            </span>
-        </el-dialog>    
+      
     </div>
 </template>
 
@@ -115,10 +92,9 @@ export default {
             },
             total: 0,
             roleList:[],
-            addDialogVisible: false, // 添加对话框
-            addDictForm: {},
-            editDialogVisible: false, // 编辑对话框
-            editDictForm: {},
+            title:'',
+            dialogVisible: false, // 添加对话框
+            dictForm: {},
         }
     },created(){
         this.getDataDictList();
@@ -140,12 +116,6 @@ export default {
             this.roleList = res.data.records
             this.total = res.data.total
         },
-        // 添加数据字典
-        async addDataDict(){
-            const {data: res} = await this.$api.dataDict.addDataDict(this.addDictForm)
-            this.addDialogVisible = false
-            this.getDataDictList()
-        },
             // 分页
         handleSizeChange(newSize) {
             this.queryInfo.pageSize = newSize;
@@ -155,25 +125,31 @@ export default {
             this.queryInfo.pageNum = current
             this.getDataDictList()
         },
-        addDialogClosed(){
-        //对话框关闭之后，重置表单
-        this.$refs.addFormRef.resetFields();
+        // 显示编辑角色信息
+        showAddDialog (id) {
+            this.title = '添加数据字典'
+            this.dialogVisible = true
         },
         // 显示编辑角色信息
         async showEditDialog (id) {
-        const { data: res } = await this.$api.dataDict.getDataDictById(id)
-        this.editDictForm = res.data
-        this.editDialogVisible = true
+            const { data: res } = await this.$api.dataDict.getDataDictById(id)
+            this.dictForm = res.data
+             this.title = '修改数据字典'
+            this.dialogVisible = true
         },
-        // 编辑数据字典
-        async editDataDict(){
-            const { data: res } = await this.$api.dataDict.editDataDict( this.editDictForm.id, this.editDictForm)
-            // 隐藏添加对话框
-            this.editDialogVisible = false
+        async submit(){
+            if(this.dictForm.id){
+                 const { data: res } = await this.$api.dataDict.editDataDict( this.dictForm.id, this.dictForm)
+            }else{
+                const {data: res} = await this.$api.dataDict.addDataDict(this.dictForm)
+            }
+             // 隐藏添加对话框
+            this.dialogVisible = false
             this.getDataDictList()
         },
-        editDialogClosed(){
-            this.$refs.editFormRef.resetFields()
+        dialogClosed(){
+            //this.$refs.editFormRef.resetFields()
+            this.dictForm = {}
         },
         // 删除数据字典
         async removeDataDict(id){
