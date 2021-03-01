@@ -172,15 +172,12 @@ export default {
         },
         // 角色列表
         async getRoleList(){
-             let query = {}
-            if(this.queryInfo.createTime){
-                query.beginCreateTime =  this.queryInfo.createTime[0]
-                query.endCreateTime =  this.queryInfo.createTime[1]
+            let query = Object.assign({}, this.queryInfo);
+            if(query.createTime){
+                query.beginCreateTime =  query.createTime[0]
+                query.endCreateTime =  query.createTime[1]
+                query.createTime = []
             }
-            query.pageNum = this.queryInfo.pageNum
-            query.pageSize = this.queryInfo.pageSize
-            query.roleName = this.queryInfo.roleName
-            query.orderBy = this.queryInfo.orderBy
             const {data: res} = await this.$api.role.getRoleList(query)
             this.roleList = res.data.records
             this.total = res.data.total

@@ -101,17 +101,15 @@ export default {
     },methods:{
         // 数据字典列表
         async getDataDictList(){
-             let query = {}
+            let query = Object.assign({}, this.queryInfo);
             if(this.queryInfo.createTime){
-                query.beginCreateTime =  this.queryInfo.createTime[0]
-                query.endCreateTime =  this.queryInfo.createTime[1]
+                query.beginCreateTime =  query.createTime[0]
+                query.endCreateTime =  query.createTime[1]
+                query.createTime = []
             }
-            query.pageNum = this.queryInfo.pageNum
-            query.pageSize = this.queryInfo.pageSize
             if(this.queryInfo.description){
                 query.description = `*${this.queryInfo.description}*`
             }
-            query.orderBy = this.queryInfo.orderBy
             const {data: res} = await this.$api.dataDict.getDataDict(query)
             this.roleList = res.data.records
             this.total = res.data.total

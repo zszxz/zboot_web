@@ -181,18 +181,15 @@ export default {
   methods: {
       // 用户列表
     async getUserList() {
-      let query = {}
-      if(this.queryInfo.createTime){
-        query.beginCreateTime =  this.queryInfo.createTime[0]
-        query.endCreateTime =  this.queryInfo.createTime[1]
+      let query = Object.assign({}, this.queryInfo);
+      if(query.createTime){
+        query.beginCreateTime =  query.createTime[0]
+        query.endCreateTime =  query.createTime[1]
+        query.createTime = []
       }
-      if(this.queryInfo.name){
+      if(query.name){
         query.name = `*${this.queryInfo.name}*`
       }
-      query.enable = this.queryInfo.enable
-      query.pageNum = this.queryInfo.pageNum
-      query.pageSize = this.queryInfo.pageSize
-      query.orderBy = this.queryInfo.orderBy
       const { data: res } = await this.$api.user.getUserList(query)
       this.userList = res.data.records
       this.total = res.data.total
