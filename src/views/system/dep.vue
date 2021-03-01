@@ -9,7 +9,7 @@
         <el-card style="margin-top: 10px;">
             <el-row>
                 <el-col :span="4">
-                    <el-button type="primary"  size="mini" v-permission="['dep:add']"  @click="addDialogVisible = true" >+添加部门</el-button>
+                    <el-button type="primary"  size="mini" v-permission="['dep:add']"  @click="showAddDep" >+添加部门</el-button>
                 </el-col>
             </el-row>  
             <div id="box">
@@ -72,41 +72,22 @@
                 </div>
             </div>
             </el-card>    
-            <el-dialog title="修改部门" :visible.sync="editDialogVisible" width="30%" @close="editDialogClosed">
+            <el-dialog :title="title" :visible.sync="dialogVisible" width="30%" @close="dialogClosed">
                 <!-- 内容主体 -->
                 <el-form
-                    :model="editDepForm"
+                    :model="depForm"
                     ref="editFormRef"
                     size="mini"
                     label-width="100px">
                     <el-form-item label="部门名称" prop="departmentName">
-                    <el-input v-model="editDepForm.departmentName"></el-input>
+                    <el-input v-model="depForm.departmentName"></el-input>
                     </el-form-item>
                     <el-form-item label="排序" prop="sort">
-                    <el-input v-model="editDepForm.sort"></el-input>
+                    <el-input v-model="depForm.sort"></el-input>
                     </el-form-item>
-                </el-form>
-                <span slot="footer" class="dialog-footer">
-                    <el-button @click="editDialogVisible = false">取 消</el-button>
-                    <el-button type="primary" @click="editDep">确 定</el-button>
-                </span>
-            </el-dialog>
-             <el-dialog title="添加部门" :visible.sync="addDialogVisible" width="30%" @close="addDialogClosed">
-                <!-- 内容主体 -->
-                <el-form
-                    :model="addDepForm"
-                    ref="addFormRef"
-                    size="mini"
-                    label-width="100px">
-                    <el-form-item label="部门名称" prop="departmentName">
-                    <el-input v-model="addDepForm.departmentName"></el-input>
-                    </el-form-item>
-                    <el-form-item label="排序" prop="sort">
-                    <el-input v-model="addDepForm.sort"></el-input>
-                    </el-form-item>
-                    <el-form-item label="父节点" prop="parentId">
-                        <el-select v-model="addDepForm.parentId" placeholder="请选择父节点"  style="width: 200px" ref="topTreeRef">
-                            <el-option :value="addDepForm.parentId" :label="addDepForm.parentName" style="width: 300px;height:200px;overflow: auto;background-color:#fff">
+                     <el-form-item v-if="!depForm.id" label="父节点" prop="parentId">
+                        <el-select v-model="depForm.parentId" placeholder="请选择父节点"  style="width: 200px" ref="topTreeRef">
+                            <el-option :value="depForm.parentId" :label="depForm.parentName" style="width: 300px;height:200px;overflow: auto;background-color:#fff">
                                 <el-tree
                                     :data="depTree"
                                     :props="defaultProps"
@@ -117,10 +98,11 @@
                     </el-form-item>
                 </el-form>
                 <span slot="footer" class="dialog-footer">
-                    <el-button size="mini" @click="addDialogVisible = false">取 消</el-button>
-                    <el-button size="mini" type="primary" @click="addDep">确 定</el-button>
+                    <el-button @click="dialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="submit">确 定</el-button>
                 </span>
             </el-dialog>
+           
             <el-dialog title="分配用户" :visible.sync="setUserDialogVisible" width="30%" @close="setUserDialogClosed">
                 <!-- 内容主体 -->
                 <el-form
@@ -158,10 +140,9 @@ export default {
             label: 'departmentName'
         },
         userList:[],
-        editDialogVisible: false,
-        editDepForm: {},
-        addDialogVisible: false,
-        addDepForm: {},
+        title:'',
+        dialogVisible: false,
+        depForm: {},
         depTree: [],
         removeDepId:'',
         setUserDialogVisible: false, // 分配用户
@@ -184,18 +165,28 @@ export default {
             this.userList = res.data
             this.removeDepId = data.id
         },
-        // 修改部门
-        async showEditDep(data){
-            this.editDepForm = data
-            this.editDialogVisible = true
+        showAddDep(){
+            this.title='添加部门'
+            this.dialogVisible = true
         },
-        async editDep(){
-            const { data: res } = await this.$api.dep.editDep(this.editDepForm.id,this.editDepForm)
-            this.editDialogVisible = false
+        // 修改部门
+        showEditDep(data){
+            this.title='修改部门'
+            this.depForm = data
+            this.dialogVisible = true
+        },
+        async submit(){
+            if(this.depForm.id){
+                 const { data: res } = await this.$api.dep.editDep(this.depForm.id,this.depForm)
+            }else{
+                 const { data: res } = await this.$api.dep.addDep(this.depForm)
+            }
+            this.dialogVisible = false
             this.getDepTree()
         },
-        editDialogClosed(){
-            this.editDepForm ={}
+        // 对话框关闭事件
+        dialogClosed(){
+            this.depForm = {}
         },
         // 删除部门
         async removeDep(data){
@@ -214,19 +205,10 @@ export default {
             const { data: res } = await this.$api.dep.deleteDep(data.id)
             this.getDepTree()
         },
-        // 添加部门
-        addDialogClosed(){
-            this.addDepForm = {}
-        },
-        async addDep(){
-            const { data: res } = await this.$api.dep.addDep(this.addDepForm)
-            this.addDialogVisible = false
-            this.getDepTree()
-        },
         handleAddNodeClick(node){
-            this.$set(this.addDepForm, "parentId", node.id)
-            this.$set(this.addDepForm, "parentName", node.departmentName)
-            this.$refs.topTreeRef.blur()
+            this.$set(this.depForm, "parentId", node.id)
+            this.$set(this.depForm, "parentName", node.departmentName)
+            //this.$refs.topTreeRef.blur()
         },
         // 移除部门用户关联
         async removeDepUser(user){

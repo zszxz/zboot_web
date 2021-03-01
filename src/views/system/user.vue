@@ -86,7 +86,7 @@
     </el-card>
 
     <!-- 添加修改用户的对话框 -->
-    <el-dialog :title="title" :visible.sync="dialogVisible" width="50%" @close="dialogClosed">
+    <el-dialog :title="title" :visible.sync="dialogVisible" width="30%" @close="dialogClosed">
       <!-- 内容主体 -->
       <el-form
         :model="userForm"
