@@ -54,7 +54,7 @@
         <div class="panel">
           <el-tag
             v-for="tag in tags"
-            effect="plain"
+  
             :key="tag.name"
             closable
             :type="tag.type"
@@ -126,8 +126,7 @@ export default {
         ]
       },
       tags: [
-        { name: "首页", type: "", path: "/index" },
-        { name: "部门", type: "", path: "/system/dep" }
+        { name: "首页", type: "info", path: "/index" },
       ],
     };
   },
@@ -217,7 +216,7 @@ export default {
   margin-bottom: 5px;
   width: 100%;
   overflow-x: auto;
-  background-color: #fff;
+  /* background-color: #fff; */
 }
 .active{
   /* color: #409eff!important; */
