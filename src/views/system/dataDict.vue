@@ -58,7 +58,7 @@
             </el-pagination>
         </el-card>
          <!-- 添加数据字典的对话框 -->
-        <el-dialog :title="title" :visible.sync="dialogVisible" width="40%" @close="dialogClosed">
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="30%" @close="dialogClosed">
             <el-form
                 :model="dictForm"
                 ref="formRef"

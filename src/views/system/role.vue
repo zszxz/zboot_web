@@ -111,6 +111,7 @@ export default {
             },
             total: 0,
             roleList:[],
+            title:'',
             dialogVisible: false, // 添加菜单对话框
             roleForm: {},
             setMenuDialogVisible: false, // 分配权限对话框
