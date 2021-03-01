@@ -37,7 +37,7 @@
                 <el-button type="primary"  icon="el-icon-search" size="small"  @click="getUserList" >搜索</el-button>
             </el-col>
             <el-col :span="4">
-                <el-button type="primary"  size="small" v-permission="['user:add']"  @click="addDialogVisible = true" >+添加用户</el-button>
+                <el-button type="primary"  size="small" v-permission="['user:add']"  @click="showAddDialog()" >+添加用户</el-button>
             </el-col>
         </el-row> 
         <!-- 用户列表(表格)区域 -->
@@ -85,66 +85,36 @@
             </el-pagination>
     </el-card>
 
-    <!-- 添加用户的对话框 -->
-    <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
+    <!-- 添加修改用户的对话框 -->
+    <el-dialog :title="title" :visible.sync="dialogVisible" width="50%" @close="dialogClosed">
       <!-- 内容主体 -->
       <el-form
-        :model="addUserForm"
-        ref="addFormRef"
+        :model="userForm"
+        ref="formRef"
         size="small"
         label-width="100px">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="addUserForm.username"></el-input>
+          <el-input v-model="userForm.username"></el-input>
         </el-form-item>
         <el-form-item label="名称" prop="name">
-          <el-input v-model="addUserForm.name"></el-input>
+          <el-input v-model="userForm.name"></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="addUserForm.password" type="password"></el-input>
+        <el-form-item v-if="!userForm.id" label="密码" prop="password">
+          <el-input v-model="userForm.password" type="password"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="addUserForm.email"></el-input>
+          <el-input v-model="userForm.email"></el-input>
         </el-form-item>
         <el-form-item label="手机" prop="telephone">
-          <el-input v-model="addUserForm.telephone"></el-input>
+          <el-input v-model="userForm.telephone"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="addDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addUser">确 定</el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
       </span>
     </el-dialog>
 
-    <!-- 修改用户的对话框 -->
-    <el-dialog
-      title="修改用户信息"
-      :visible.sync="editDialogVisible"
-      width="50%"
-      size="small"
-      @close="editDialogClosed">
-      <!-- 内容主体 -->
-      <el-form
-        :model="editUserForm"
-        ref="editFormRef"
-        label-width="70px">
-        <el-form-item label="用户名">
-          <el-input v-model="editUserForm.username" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="editUserForm.name"></el-input>
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="editUserForm.email"></el-input>
-        </el-form-item>
-        <el-form-item label="手机" prop="telephone">
-          <el-input v-model="editUserForm.telephone"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editUser">确 定</el-button>
-      </span>
-    </el-dialog>
 
     <!-- 分配角色对话框 -->
     <el-dialog title="分配角色" :visible.sync="setRoleDialogVisible" width="50%">
@@ -194,10 +164,9 @@ export default {
       },
       userList:[],
       total:0,
-      addDialogVisible: false,
-      addUserForm:{},
-      editDialogVisible: false,
-      editUserForm: {},
+      title:'',
+      dialogVisible: false,
+      userForm:{},
       userInfo: {},
       setRoleDialogVisible: false,
       userRoleList: [],
@@ -237,33 +206,33 @@ export default {
     this.queryInfo.pageNum = current
     this.getUserList()
     },
-    // 添加用户
-    async addUser () {
-      const { data: res } = await this.$api.user.addrUser(this.addUserForm)
-      this.addDialogVisible = false
-      this.getUserList()
-    },
-    addDialogClosed(){
+    dialogClosed(){
       //对话框关闭之后，重置表单
-      // this.$refs.addFormRef.resetFields();
-      this.addUserForm = {}
+      // this.$refs.formRef.resetFields();
+      this.userForm = {}
+  },
+  showAddDialog(){
+    this.title = '添加用户信息'
+    this.dialogVisible = true
   },
   // 显示编辑用户信息
     async showEditDialog (id) {
       const { data: res } = await this.$api.user.getUserById(id)
-      this.editUserForm = res.data
-      this.editDialogVisible = true
+      this.userForm = res.data
+      this.title = '修改用户信息'
+      this.dialogVisible = true
     },
-  // 修改用户
-   async editUser(){
-       const { data: res } = await this.$api.user.editUser(this.editUserForm.id, this.editUserForm)
-        // 隐藏添加用户对话框
-        this.editDialogVisible = false
-        this.getUserList()
-   },
-  editDialogClosed(){
-      this.$refs.editFormRef.resetFields();
-  },
+    // 修改或者添加用户信息
+    async submit(){
+      if(this.userForm.id!==undefined){
+        // 修改用户信息
+        const { data: res } = await this.$api.user.editUser(this.userForm.id, this.userForm)
+      }else{
+        const { data: res } = await this.$api.user.addrUser(this.userForm)
+      }
+      this.dialogVisible = false
+      this.getUserList()
+    },
   async editUserStatus(user){
     let newUser = {enable:user.enable}
     const { data: res } = await this.$api.user.editUser(user.id, newUser)
