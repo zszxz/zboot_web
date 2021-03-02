@@ -41,7 +41,7 @@
                 <el-table-column label="创建时间" prop="createTime"></el-table-column>
                 <el-table-column label="操作" width="300px">
                     <template slot-scope="scope"> 
-                        <el-button size="mini" type="primary"  v-permission="['dict:edit']" icon="el-icon-edit"  @click="showEditDialog(scope.row.id)">编辑</el-button>
+                        <el-button size="mini" type="primary"  v-permission="['dict:edit']" icon="el-icon-edit"  @click="showEditDialog(scope.row)">编辑</el-button>
                         <el-button size="mini" type="danger"  v-permission="['dict:delete']" icon="el-icon-delete"  @click="removeDataDict(scope.row.id)">删除</el-button>
                     </template>
                 </el-table-column>
@@ -129,9 +129,8 @@ export default {
             this.dialogVisible = true
         },
         // 显示编辑角色信息
-        async showEditDialog (id) {
-            const { data: res } = await this.$api.dataDict.getDataDictById(id)
-            this.dictForm = res.data
+        async showEditDialog (data) {
+            this.dictForm = data
              this.title = '修改数据字典'
             this.dialogVisible = true
         },
