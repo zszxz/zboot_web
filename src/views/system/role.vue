@@ -19,6 +19,7 @@
                     start-placeholder="开始日期"
                     end-placeholder="结束日期"
                     size="small"
+                    unlink-panels
                     value-format="yyyy-MM-dd HH:mm:ss"
                     prefix-icon="el-input__icon el-icon-date"
                     :default-time="['00:00:00', '00:00:00']">
@@ -41,7 +42,7 @@
                 <el-table-column label="创建时间" prop="createTime"></el-table-column>
                 <el-table-column label="操作" width="300px">
                     <template slot-scope="scope"> 
-                        <el-button size="mini" type="primary"  v-permission="['role:edit']" icon="el-icon-edit"  @click="showEditDialog(scope.row.id)">编辑</el-button>
+                        <el-button size="mini" type="primary"  v-permission="['role:edit']" icon="el-icon-edit"  @click="showEditDialog(scope.row)">编辑</el-button>
                         <el-button size="mini" type="danger"  v-permission="['role:delete']" icon="el-icon-delete"  @click="removeRole(scope.row.id)">删除</el-button>
                         <el-button size="mini" type="warning"  v-permission="['role:menu']" icon="el-icon-setting" @click="showSetMenu(scope.row)" >分配权限</el-button>
                     </template>
@@ -211,9 +212,8 @@ export default {
             this.dialogVisible = true
         },
         // 显示编辑角色信息
-        async showEditDialog (id) {
-            const { data: res } = await this.$api.role.getRoleById(id)
-            this.roleForm = res.data
+        async showEditDialog (data) {
+            this.roleForm = data
             this.title = '修改角色'
             this.dialogVisible = true
         },

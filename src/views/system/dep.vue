@@ -86,15 +86,7 @@
                     <el-input v-model="depForm.sort"></el-input>
                     </el-form-item>
                      <el-form-item v-if="!depForm.id" label="父节点" prop="parentId">
-                        <el-select v-model="depForm.parentId" placeholder="请选择父节点"  style="width: 200px" ref="topTreeRef">
-                            <el-option :value="depForm.parentId" :label="depForm.parentName" style="width: 300px;height:200px;overflow: auto;background-color:#fff">
-                                <el-tree
-                                    :data="depTree"
-                                    :props="defaultProps"
-                                    @node-click="handleAddNodeClick">
-                                </el-tree>
-                            </el-option>
-                        </el-select>
+                        <tree childrenName="children" parentId="parentId" nodeId="id" nodeName="departmentName" :treeData="depTree" :fromData="depForm" ></tree>
                     </el-form-item>
                 </el-form>
                 <span slot="footer" class="dialog-footer">
@@ -130,6 +122,9 @@
 </template>
 
 <script>
+
+import tree from '@/components/tree'
+
 export default {
 
   data() {
@@ -149,6 +144,9 @@ export default {
         setDepUserForm: {}
 
     }
+    },
+    components:{
+        tree
     },
     created() {
         this.getDepTree()
@@ -204,11 +202,6 @@ export default {
             }
             const { data: res } = await this.$api.dep.deleteDep(data.id)
             this.getDepTree()
-        },
-        handleAddNodeClick(node){
-            this.$set(this.depForm, "parentId", node.id)
-            this.$set(this.depForm, "parentName", node.departmentName)
-            //this.$refs.topTreeRef.blur()
         },
         // 移除部门用户关联
         async removeDepUser(user){

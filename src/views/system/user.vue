@@ -21,6 +21,7 @@
                   start-placeholder="开始日期"
                   end-placeholder="结束日期"
                   size="small"
+                  unlink-panels
                   value-format="yyyy-MM-dd HH:mm:ss"
                   prefix-icon="el-input__icon el-icon-date"
                   :default-time="['00:00:00', '00:00:00']">
@@ -63,7 +64,7 @@
             <el-table-column label="操作" width="300px">
                 <template slot-scope="scope">
                     <!-- 修改 -->
-                    <el-button type="primary" icon="el-icon-edit" v-permission="['user:edit']" size='mini' @click="showEditDialog(scope.row.id)">编辑</el-button>
+                    <el-button type="primary" icon="el-icon-edit" v-permission="['user:edit']" size='mini' @click="showEditDialog(scope.row)">编辑</el-button>
                     <!-- 删除 -->
                     <el-button type="danger" icon="el-icon-delete" v-permission="['user:delete']" size='mini'  @click="removeUser(scope.row.id)">删除</el-button>
                     <!-- 分配角色 -->
@@ -213,9 +214,8 @@ export default {
     this.dialogVisible = true
   },
   // 显示编辑用户信息
-    async showEditDialog (id) {
-      const { data: res } = await this.$api.user.getUserById(id)
-      this.userForm = res.data
+    async showEditDialog (data) {
+      this.userForm = data
       this.title = '修改用户信息'
       this.dialogVisible = true
     },
